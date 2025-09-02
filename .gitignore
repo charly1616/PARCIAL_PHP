@@ -1,0 +1,44 @@
+# ==============================
+# Archivos del sistema
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Archivos de configuración y conexión
+# ==============================
+conexion.php   # ⚠️ Contiene credenciales de la BD
+
+# ==============================
+# Archivos de base de datos
+# ==============================
+DB/
+*.sql
+*.pdf
+
+# ==============================
+# Archivos temporales / Logs
+# ==============================
+*.log
+*.tmp
+*.bak
+*.swp
+
+# ==============================
+# Archivos de texto auxiliares
+# ==============================
+*.txt
+
+# ==============================
+# Dependencias (si llegas a usar Composer)
+# ==============================
+vendor/
+composer.lock
+
+# ==============================
+# Cachés y sesiones de PHP
+# ==============================
+*.sess
+*.cache
+*.zip
+*.tar.gz
