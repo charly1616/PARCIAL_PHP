@@ -208,7 +208,6 @@
         fetch(`http://localhost/Apipedidos/orderscustomers.php?id=${customerId}`)
             .then(res => res.json())
             .then(data => {
-                console.log(data);
 
                 let select = document.getElementById("orders");
                 let orderSection = document.getElementById("order-section");
@@ -225,7 +224,6 @@
                     return;
                 }
 
-                // --- Extraer órdenes únicas ---
                 let uniqueOrders = [];
                 let seen = new Set();
 
@@ -236,7 +234,6 @@
                     }
                 });
 
-                // Caso normal: llenar órdenes únicas
                 uniqueOrders.forEach(o => {
                     let opt = document.createElement("option");
                     opt.value = o.orderNumber;
@@ -253,44 +250,45 @@
         // Mostrar detalles cuando se selecciona una orden
         document.getElementById("btnOrder").addEventListener("click", () => {
             let orderId = document.getElementById("orders").value;
+            let customerId = document.getElementById("customers").value;
             if (!orderId) return alert("Seleccione una orden");
 
-            fetch("http://localhost/Apipedidos/orders.php?orderNumber=" + orderId)
+            fetch(`http://localhost/Apipedidos/customers.php?id=${customerId}`)
                 .then(res => res.json())
                 .then(data => {
-                    // Asignar datos de cliente y orden
-                    document.getElementById("customerNumber").value = data.customer.customerNumber;
-                    document.getElementById("customerName").value = data.customer.customerName;
-                    document.getElementById("phone").value = data.customer.phone;
-                    document.getElementById("orderNumber").value = data.order.orderNumber;
-                    document.getElementById("orderDate").value = data.order.orderDate;
+                    console.log(data);
 
-                    // Tabla de detalles
-                    let tableHTML = `
-                        <table>
-                            <tr>
-                                <th>productCode</th>
-                                <th>productName</th>
-                                <th>quantityOrdered</th>
-                                <th>priceEach</th>
-                            </tr>`;
+                    document.getElementById("customerNumber").value = data[0].customerNumber;
+                    document.getElementById("customerName").value = data[0].customerName;
+                    document.getElementById("phone").value = data[0].phone;
+
+                    
+                })
+
+            fetch("http://localhost/Apipedidos/orders.php?id=" + orderId)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data);
+
+                    // Asignar orden
+                    document.getElementById("orderNumber").value = orderId;
+                    document.getElementById("orderDate").value = data[0].orderDate;
+
+                    // Calcular total
                     let total = 0;
-                    data.details.forEach(d => {
-                        tableHTML += `
-                            <tr>
-                                <td>${d.productCode}</td>
-                                <td>${d.productName}</td>
-                                <td>${d.quantityOrdered}</td>
-                                <td>${d.priceEach}</td>
-                            </tr>`;
-                        total += d.quantityOrdered * d.priceEach;
-                    });
-                    tableHTML += "</table>";
+                    if (Array.isArray(data.orderDetails)) {
+                        data.orderDetails.forEach(item => {
+                            total += item.quantityOrdered * item.priceEach;
+                        });
+                    }
 
-                    document.getElementById("orderTable").innerHTML = tableHTML;
-                    document.getElementById("orderTotal").textContent = "$" + total.toLocaleString();
-                    document.getElementById("details-section").classList.remove("hidden");
-                });
+                    // Mostrar total en el DOM
+                    document.getElementById("orderTotal").textContent = 
+                        "$" + total.toLocaleString();
+                })
+                .catch(err => console.error("Error:", err));
+
+            document.getElementById("details-section").classList.remove("hidden");
         });
     </script>
 </body>
