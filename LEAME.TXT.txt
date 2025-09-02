@@ -1,0 +1,10 @@
+Debe descargar la carpeta y ponerla en os archivos públicos de xampp
+
+C:\xampp\htdocs\Apipedidos (Nodebe existir carpeta dentro de otra carpeta)
+
+Exportar la base dates 'mysqlsampledatabase.sql' en MySQL con PhpMyAdmin, el mismo script crea automaticamente la base de datos
+classicmodels.
+
+Ejeuctar la api debe quedar corriendo asi
+http://localhost/Apipedidos/
+
