@@ -265,6 +265,10 @@
                 document.getElementById("details-section").classList.remove("hidden");
             });
     });
+
+    document.querySelector(".btn-back").addEventListener("click", () => {
+        location.reload(); // Recarga la página
+    });
     </script>
 </body>
 </html>
