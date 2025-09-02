@@ -42,3 +42,12 @@ composer.lock
 *.cache
 *.zip
 *.tar.gz
+
+
+conexion.php
+customers.php
+employees.php
+employeeescustomers.php
+orders.php
+orderscustomers.php
+products.php
