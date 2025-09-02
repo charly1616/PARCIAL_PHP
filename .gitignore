@@ -47,7 +47,7 @@ composer.lock
 conexion.php
 customers.php
 employees.php
-employeeescustomers.php
+employeescustomers.php
 orders.php
 orderscustomers.php
 products.php

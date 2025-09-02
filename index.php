@@ -56,18 +56,15 @@
         button:hover {
             background: #43a047;
         }
+        .hidden {
+            display: none;
+        }
         .customer-info, .order-info {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-top: 15px;
             margin-bottom: 20px;
-        }
-        .customer-info label, .order-info label {
-            font-size: 13px;
-        }
-        .customer-info input, .order-info input {
-            width: 100%;
         }
         .table-container {
             margin-top: 20px;
@@ -119,67 +116,182 @@
         <h2>Front-End con HTML+PHP</h2>
 
         <!-- Customers -->
-        <div class="form-section">
+        <div class="form-section" id="customer-section">
             <label for="customers">Customers:</label>
-            <select id="customers" name="customers">
-                <option>--Seleccione--</option>
-                <option value="1">Cliente 1</option>
-                <option value="2">Cliente 2</option>
+            <select id="customers">
+                <option value="">--Seleccione--</option>
             </select>
-            <button>Ok1</button>
+            <button id="btnCustomer">Ok1</button>
         </div>
 
-        <!-- Orders -->
-        <div class="form-section">
+        <!-- Orders (inicialmente oculto) -->
+        <div class="form-section hidden" id="order-section">
             <label for="orders">Orders:</label>
-            <select id="orders" name="orders">
-                <option>--Seleccione--</option>
-                <option value="1">Orden 1</option>
-                <option value="2">Orden 2</option>
+            <select id="orders">
+                <option value="">--Seleccione--</option>
             </select>
-            <button>Ok2</button>
+            <button id="btnOrder">Ok2</button>
         </div>
 
-        <!-- Customer Data -->
-        <div class="customer-info">
-            <div>
-                <label>CustomerNumber:</label>
-                <input type="text">
-            </div>
-            <div>
-                <label>CustomerName:</label>
-                <input type="text">
-            </div>
-            <div>
-                <label>Phone:</label>
-                <input type="text">
-            </div>
+        <!-- Mensaje de no hay pedidos -->
+        <div id="no-orders-message" class="hidden" style="text-align:center; color:#b71c1c; font-weight:bold; margin:15px 0;">
+            No hay pedidos para este cliente
         </div>
 
-        <!-- Order Data -->
-        <div class="order-info">
-            <div>
-                <label>OrderNumber:</label>
-                <input type="text">
+        <!-- Datos de cliente y orden (oculto hasta seleccionar orden) -->
+        <div id="details-section" class="hidden">
+            <div class="customer-info">
+                <div>
+                    <label>CustomerNumber:</label>
+                    <input type="text" id="customerNumber" readonly>
+                </div>
+                <div>
+                    <label>CustomerName:</label>
+                    <input type="text" id="customerName" readonly>
+                </div>
+                <div>
+                    <label>Phone:</label>
+                    <input type="text" id="phone" readonly>
+                </div>
             </div>
-            <div>
-                <label>OrderDate:</label>
-                <input type="text">
+
+            <div class="order-info">
+                <div>
+                    <label>OrderNumber:</label>
+                    <input type="text" id="orderNumber" readonly>
+                </div>
+                <div>
+                    <label>OrderDate:</label>
+                    <input type="text" id="orderDate" readonly>
+                </div>
             </div>
-        </div>
 
-        <!-- Tabla de detalles -->
-        <div class="table-container">
-            <?php include 'orderTable.php'; ?>
-        </div>
+            
 
-        <!-- Total -->
-        <div class="total">
-            Total de la Orden <span>$14.000.00</span>
-        </div>
+            <!-- Tabla de detalles -->
+            <div class="table-container" id="orderTable">
+                <!-- Aquí se cargará la tabla -->
+            </div>
 
-        <!-- Botón -->
-        <button class="btn-back">Back</button>
+            
+            <div class="total">
+                Total de la Orden <span id="orderTotal">$0.00</span>
+            </div>
+
+
+            <button class="btn-back">Back</button>
+        </div>
     </div>
+
+    <script>
+        // Cargar clientes desde la API
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("http://localhost/Apipedidos/customers.php")
+                .then(res => res.json())
+                .then(data => {
+                    let select = document.getElementById("customers");
+                    data.forEach(c => {
+                        let opt = document.createElement("option");
+                        opt.value = c.customerNumber;
+                        opt.textContent = c.customerName;
+                        select.appendChild(opt);
+                    });
+                });
+        });
+
+
+        // Mostrar órdenes cuando se selecciona un cliente
+    document.getElementById("btnCustomer").addEventListener("click", () => {
+        let customerId = document.getElementById("customers").value;
+        if (!customerId) return alert("Seleccione un cliente");
+
+        fetch(`http://localhost/Apipedidos/orderscustomers.php?id=${customerId}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+
+                let select = document.getElementById("orders");
+                let orderSection = document.getElementById("order-section");
+                let noOrdersMessage = document.getElementById("no-orders-message");
+
+                // Resetear
+                select.innerHTML = '<option value="">--Seleccione--</option>';
+                orderSection.classList.add("hidden");
+                noOrdersMessage.classList.add("hidden");
+
+                // Si la API devuelve error o array vacío
+                if (data["codigo"] === "-1" || data.length === 0) {
+                    noOrdersMessage.classList.remove("hidden");
+                    return;
+                }
+
+                // --- Extraer órdenes únicas ---
+                let uniqueOrders = [];
+                let seen = new Set();
+
+                data.forEach(o => {
+                    if (!seen.has(o.orderNumber)) {
+                        seen.add(o.orderNumber);
+                        uniqueOrders.push(o);
+                    }
+                });
+
+                // Caso normal: llenar órdenes únicas
+                uniqueOrders.forEach(o => {
+                    let opt = document.createElement("option");
+                    opt.value = o.orderNumber;
+                    opt.textContent = "Orden #" + o.orderNumber;
+                    select.appendChild(opt);
+                });
+
+                orderSection.classList.remove("hidden");
+            });
+        });
+
+
+
+        // Mostrar detalles cuando se selecciona una orden
+        document.getElementById("btnOrder").addEventListener("click", () => {
+            let orderId = document.getElementById("orders").value;
+            if (!orderId) return alert("Seleccione una orden");
+
+            fetch("http://localhost/Apipedidos/orders.php?orderNumber=" + orderId)
+                .then(res => res.json())
+                .then(data => {
+                    // Asignar datos de cliente y orden
+                    document.getElementById("customerNumber").value = data.customer.customerNumber;
+                    document.getElementById("customerName").value = data.customer.customerName;
+                    document.getElementById("phone").value = data.customer.phone;
+                    document.getElementById("orderNumber").value = data.order.orderNumber;
+                    document.getElementById("orderDate").value = data.order.orderDate;
+
+                    // Tabla de detalles
+                    let tableHTML = `
+                        <table>
+                            <tr>
+                                <th>productCode</th>
+                                <th>productName</th>
+                                <th>quantityOrdered</th>
+                                <th>priceEach</th>
+                            </tr>`;
+                    let total = 0;
+                    data.details.forEach(d => {
+                        tableHTML += `
+                            <tr>
+                                <td>${d.productCode}</td>
+                                <td>${d.productName}</td>
+                                <td>${d.quantityOrdered}</td>
+                                <td>${d.priceEach}</td>
+                            </tr>`;
+                        total += d.quantityOrdered * d.priceEach;
+                    });
+                    tableHTML += "</table>";
+
+                    document.getElementById("orderTable").innerHTML = tableHTML;
+                    document.getElementById("orderTotal").textContent = "$" + total.toLocaleString();
+                    document.getElementById("details-section").classList.remove("hidden");
+                });
+        });
+    </script>
 </body>
 </html>
