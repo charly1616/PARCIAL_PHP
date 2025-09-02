@@ -188,7 +188,6 @@
         fetch(`http://localhost/Apipedidos/orderscustomers.php?id=${customerId}`)
             .then(res => res.json())
             .then(data => {
-
                 let select = document.getElementById("orders");
                 let orderSection = document.getElementById("order-section");
                 let noOrdersMessage = document.getElementById("no-orders-message");
@@ -227,51 +226,42 @@
             });
     });
 
+    // Mostrar detalles de la orden
+    document.getElementById("btnOrder").addEventListener("click", () => {
+        let orderId = document.getElementById("orders").value;
+        if (!orderId) return alert("Seleccione una orden");
 
+        fetch("http://localhost/Apipedidos/orders.php?id=" + orderId)
+            .then(res => res.json())
+            .then(data => {
+                // data = array de detalles [{productCode, productName, quantityOrdered, priceEach}]
+                let tableHTML = `
+                    <table>
+                        <tr>
+                            <th>productCode</th>
+                            <th>productName</th>
+                            <th>quantityOrdered</th>
+                            <th>priceEach</th>
+                        </tr>`;
+                let total = 0;
+                data.forEach(d => {
+                    tableHTML += `
+                        <tr>
+                            <td>${d.productCode}</td>
+                            <td>${d.productName}</td>
+                            <td>${d.quantityOrdered}</td>
+                            <td>$${Number(d.priceEach).toLocaleString()}</td>
+                        </tr>`;
+                    total += d.quantityOrdered * d.priceEach;
+                });
+                tableHTML += "</table>";
 
-        // Mostrar detalles cuando se selecciona una orden
-        document.getElementById("btnOrder").addEventListener("click", () => {
-            let orderId = document.getElementById("orders").value;
-            let customerId = document.getElementById("customers").value;
-            if (!orderId) return alert("Seleccione una orden");
-
-            fetch(`http://localhost/Apipedidos/customers.php?id=${customerId}`)
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    document.getElementById("customerNumber").value = data[0].customerNumber;
-                    document.getElementById("customerName").value = data[0].customerName;
-                    document.getElementById("phone").value = data[0].phone;
-
-                    
-                })
-
-            fetch("http://localhost/Apipedidos/orders.php?id=" + orderId)
-                .then(res => res.json())
-                .then(data => {
-                    console.log(data);
-
-                    // Asignar orden
-                    document.getElementById("orderNumber").value = orderId;
-                    document.getElementById("orderDate").value = data[0].orderDate;
-
-                    // Calcular total
-                    let total = 0;
-                    if (Array.isArray(data.orderDetails)) {
-                        data.orderDetails.forEach(item => {
-                            total += item.quantityOrdered * item.priceEach;
-                        });
-                    }
-
-                    // Mostrar total en el DOM
-                    document.getElementById("orderTotal").textContent = 
-                        "$" + total.toLocaleString();
-                })
-                .catch(err => console.error("Error:", err));
-
-            document.getElementById("details-section").classList.remove("hidden");
-        });
+                document.getElementById("orderTable").innerHTML = tableHTML;
+                document.getElementById("orderTotal").textContent = "$" + total.toLocaleString();
+                document.getElementById("orderNumber").value = orderId;
+                document.getElementById("details-section").classList.remove("hidden");
+            });
+    });
     </script>
 </body>
 </html>
